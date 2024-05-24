@@ -20,15 +20,12 @@ function auth(req, res, next) {
     if (err) {
       return next(HttpError(401, "Not authorized"));
     }
-    console.log({ decode });
     try {
       const user = await User.findById(decode.id);
 
       if (!user || user.token !== token) {
         throw HttpError(401, "Not authorized");
       }
-
-      console.log({ decode });
 
       req.user = { id: decode.id, name: decode.name };
       next();

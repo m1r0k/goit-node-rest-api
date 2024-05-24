@@ -4,9 +4,8 @@ import User from "../models/auth.js";
 import HttpError from "../helpers/HttpError.js";
 
 async function register(req, res, next) {
-  const { name, email, password } = req.body;
+  const { email, password } = req.body;
   const emailToLowerCase = email.trim().toLowerCase();
-  const nameTrim = name.trim();
   const passwordTrim = password.trim();
 
   try {
@@ -18,16 +17,12 @@ async function register(req, res, next) {
     const passwordHash = await bcrypt.hash(passwordTrim, 10);
 
     const newUser = await User.create({
-      name: nameTrim,
       email: emailToLowerCase,
       password: passwordHash,
     });
-    res
-      .status(201)
-      .json({
-        message: "Registration successfully",
-        user: { email: emailToLowerCase, subscription: newUser.subscription },
-      });
+    res.status(201).json({
+      user: { email: emailToLowerCase, subscription: newUser.subscription },
+    });
   } catch (error) {
     next(error);
   }
@@ -57,7 +52,7 @@ async function login(req, res, next) {
       { expiresIn: 60 * 60 }
     );
 
-    await User.findByIdAndUpdate(user._id, { token });
+    await User.findByIdAndUpdate(user._id);
 
     res.send({ token, user: { email, subscription: user.subscription } });
   } catch (error) {
@@ -67,7 +62,7 @@ async function login(req, res, next) {
 
 async function logout(req, res, next) {
   try {
-    await User.findByIdAndUpdate(req.user._id, { token: null });
+    await User.findByIdAndUpdate(req.user._id);
     res.status(204);
   } catch (error) {
     next(error);
