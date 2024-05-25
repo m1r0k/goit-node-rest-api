@@ -16,11 +16,11 @@ function auth(req, res, next) {
     throw HttpError(401, "Not authorized");
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, async (err, decode) => {
-    if (err) {
-      return next(HttpError(401, "Not authorized"));
-    }
-    try {
+  try {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decode) => {
+      if (err) {
+        return next(HttpError(401, "Not authorized"));
+      }
       const user = await User.findById(decode.id);
 
       if (!user || user.token !== token) {
@@ -29,10 +29,10 @@ function auth(req, res, next) {
 
       req.user = { id: decode.id, name: decode.name };
       next();
-    } catch (error) {
-      next(error);
-    }
-  });
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 export default auth;

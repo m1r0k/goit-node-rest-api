@@ -31,7 +31,8 @@ export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const removedContact = await Contact.findByIdAndDelete(id, {
+    const removedContact = await Contact.findOneAndDelete({
+      _id: id,
       owner: req.user._id,
     });
     if (!removedContact) {
@@ -61,7 +62,7 @@ export const createContact = async (req, res, next) => {
 export const updateContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const changeContact = await Contact.findByIdAndUpdate(id, req.body, {
+    const changeContact = await Contact.findOneAndUpdate(id, req.body, {
       new: true,
       owner: req.user._id,
     });
@@ -78,7 +79,7 @@ export const updateStatusContact = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { _id: owner } = req.user;
-    const changeStatusContact = await Contact.findByIdAndUpdate(
+    const changeStatusContact = await Contact.findOneAndUpdate(
       id,
       { ...req.body, owner },
       {

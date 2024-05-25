@@ -29,11 +29,11 @@ async function register(req, res, next) {
 }
 
 async function login(req, res, next) {
-  const { email, password } = req.body;
-
-  const emailToLowerCase = email.trim().toLowerCase();
-
   try {
+    const { email, password } = req.body;
+
+    const emailToLowerCase = email.trim().toLowerCase();
+
     const user = await User.findOne({ email: emailToLowerCase });
 
     if (user === null) {
@@ -52,7 +52,7 @@ async function login(req, res, next) {
       { expiresIn: 60 * 60 }
     );
 
-    await User.findByIdAndUpdate(user._id);
+    await User.findByIdAndUpdate(user._id, { token });
 
     res.send({ token, user: { email, subscription: user.subscription } });
   } catch (error) {
@@ -62,8 +62,8 @@ async function login(req, res, next) {
 
 async function logout(req, res, next) {
   try {
-    await User.findByIdAndUpdate(req.user._id);
-    res.status(204);
+    await User.findByIdAndUpdate(req.user._id, { token: null });
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
