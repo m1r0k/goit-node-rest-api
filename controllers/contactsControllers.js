@@ -77,10 +77,10 @@ export const updateContact = async (req, res, next) => {
 export const updateStatusContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { _id: owner } = req.user;
+    const owner = req.user.id;
     const changeStatusContact = await Contact.findOneAndUpdate(
-      id,
-      { ...req.body, owner },
+      {_id: id, owner},
+      req.body,
       {
         new: true,
       }
