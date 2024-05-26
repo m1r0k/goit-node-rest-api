@@ -62,9 +62,8 @@ export const createContact = async (req, res, next) => {
 export const updateContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const changeContact = await Contact.findOneAndUpdate(id, req.body, {
+    const changeContact = await Contact.findOneAndUpdate({_id:id, owner: req.user._id}, req.body, {
       new: true,
-      owner: req.user._id,
     });
     if (!changeContact) {
       throw new HttpError(404, "Contact not found");
