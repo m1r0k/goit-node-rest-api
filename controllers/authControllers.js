@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import gravatar from "gravatar";
 import User from "../models/auth.js";
 import HttpError from "../helpers/HttpError.js";
 
@@ -16,12 +17,23 @@ async function register(req, res, next) {
 
     const passwordHash = await bcrypt.hash(passwordTrim, 10);
 
+    const avatarURL = gravatar.url(
+      emailToLowerCase,
+      { s: "250", d: "robohash" },
+      true
+    );
+
     const newUser = await User.create({
       email: emailToLowerCase,
       password: passwordHash,
+      avatarURL,
     });
     res.status(201).json({
-      user: { email: emailToLowerCase, subscription: newUser.subscription },
+      user: {
+        email: emailToLowerCase,
+        subscription: newUser.subscription,
+        avatarURL,
+      },
     });
   } catch (error) {
     next(error);
