@@ -50,5 +50,50 @@ async function uploadAvatar(req, res, next) {
     next(error);
   }
 }
+async function verify(req, res, next) {
+  const { verificationToken } = req.params;
 
-export default { getAvatar, uploadAvatar };
+  try {
+    const user = User.findOne({ verificationToken });
+
+    if (user === null) {
+      throw HttpError(404, "User not found");
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+      verify: true,
+      verificationToken: null,
+    });
+
+    res.status(200).send({ message: "Email confirm successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function requestVerify(req, res, next) {
+  try {
+    const { email } = req.body;
+
+    const user = User.findOne({ email });
+
+    if (user === null) {
+      throw HttpError(404, "User not found");
+    }
+
+    if (user.verify) {
+      throw HttpError(400, "Verification has already been completed");
+    }
+
+    sendVerificationMail({
+      to: emailToLowerCase,
+      verificationToken: user.verificationToken,
+    });
+
+    res.send({ message: "Verification mail sent. Check your mail" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export default { getAvatar, uploadAvatar, verify, requestVerify };

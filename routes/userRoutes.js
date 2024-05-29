@@ -5,7 +5,9 @@ import authMiddleware from "../middlewares/auth.js";
 
 const userRouter = express.Router();
 
-userRouter.get("/avatar", UserController.getAvatar);
+userRouter.get("/verify/:verificationToken", UserController.verify);
+userRouter.post("/verify", UserController.requestVerify);
+userRouter.get("/avatar", authMiddleware, UserController.getAvatar);
 userRouter.patch(
   "/avatar",
   authMiddleware,
