@@ -35,10 +35,10 @@ async function register(req, res, next) {
 
     mail.sendMail({
       to: emailToLowerCase,
-      from: "mir_ok@ukr.net",
+      from: process.env.MAILTRAP_USER_EMAIL,
       subject: "Welcome to your Contactbook!",
-      html: `To confirm your email please click on the <a href="http://localhost:9000/api/users/verify/${verificationToken}">link</a>`,
-      text: `To confirm your email please open the link http://localhost:9000/api/users/verify/${verificationToken}`,
+      html: `To confirm your email please click on the <a href="http://${process.env.BASE_URL}/api/users/verify/${verificationToken}">link</a>`,
+      text: `To confirm your email please open the link http://${process.env.BASE_URL}/api/users/verify/${verificationToken}`,
       verificationToken,
     });
 
