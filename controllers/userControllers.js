@@ -54,7 +54,7 @@ async function verify(req, res, next) {
   const { verificationToken } = req.params;
 
   try {
-    const user = User.findOne({ verificationToken });
+    const user = await User.findOne({ verificationToken });
 
     if (user === null) {
       throw HttpError(404, "User not found");
@@ -74,8 +74,8 @@ async function verify(req, res, next) {
 async function requestVerify(req, res, next) {
   try {
     const { email } = req.body;
-
-    const user = User.findOne({ email });
+    const emailToLowerCase = email.trim().toLowerCase();
+    const user = User.findOne({ email: emailToLowerCase });
 
     if (user === null) {
       throw HttpError(404, "User not found");
@@ -85,7 +85,7 @@ async function requestVerify(req, res, next) {
       throw HttpError(400, "Verification has already been completed");
     }
 
-    sendVerificationMail({
+    await sendVerificationMail({
       to: emailToLowerCase,
       verificationToken: user.verificationToken,
     });

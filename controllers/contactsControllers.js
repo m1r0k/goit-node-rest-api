@@ -2,7 +2,6 @@ import Contact from "../models/contact.js";
 import HttpError from "../helpers/HttpError.js";
 
 export const getAllContacts = async (req, res, next) => {
-  console.log({ user: req.user });
   try {
     const contacts = await Contact.find({ owner: req.user._id });
     res.status(200).json(contacts);
@@ -14,11 +13,10 @@ export const getAllContacts = async (req, res, next) => {
 export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     const contact = await Contact.findOne({ _id: id, owner: req.user._id });
 
     if (contact === null) {
-      throw new HttpError(404, "Contact not found");
+      throw HttpError(404, "Contact not found");
     }
 
     res.status(200).json(contact);
@@ -30,14 +28,15 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     const removedContact = await Contact.findOneAndDelete({
       _id: id,
       owner: req.user._id,
     });
+
     if (!removedContact) {
-      throw new HttpError(404, "Contact not found");
+      throw HttpError(404, "Contact not found");
     }
+
     res.status(200).json(removedContact);
   } catch (error) {
     next(error);
@@ -50,9 +49,11 @@ export const createContact = async (req, res, next) => {
       ...req.body,
       owner: req.user._id,
     });
+
     if (!createdContact) {
-      throw new HttpError(400);
+      throw HttpError(400);
     }
+
     res.status(201).json(createdContact);
   } catch (error) {
     next(error);
@@ -65,13 +66,13 @@ export const updateContact = async (req, res, next) => {
     const changeContact = await Contact.findOneAndUpdate(
       { _id: id, owner: req.user._id },
       req.body,
-      {
-        new: true,
-      }
+      { new: true }
     );
+
     if (!changeContact) {
-      throw new HttpError(404, "Contact not found");
+      throw HttpError(404, "Contact not found");
     }
+
     res.status(200).json(changeContact);
   } catch (error) {
     next(error);
@@ -85,13 +86,13 @@ export const updateStatusContact = async (req, res, next) => {
     const changeStatusContact = await Contact.findOneAndUpdate(
       { _id: id, owner },
       req.body,
-      {
-        new: true,
-      }
+      { new: true }
     );
+
     if (!changeStatusContact) {
-      throw new HttpError(404, "Contact not found");
+      throw HttpError(404, "Contact not found");
     }
+
     res.status(200).json(changeStatusContact);
   } catch (error) {
     next(error);

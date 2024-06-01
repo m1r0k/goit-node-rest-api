@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
 import User from "../models/auth.js";
 import HttpError from "../helpers/HttpError.js";
-import mail from "../mail.js";
+import { sendVerificationMail } from "../mail.js";
 
 async function register(req, res, next) {
   const { email, password } = req.body;
@@ -33,12 +33,8 @@ async function register(req, res, next) {
       avatarURL,
     });
 
-    mail.sendMail({
+    await sendVerificationMail({
       to: emailToLowerCase,
-      from: process.env.MAILTRAP_USER_EMAIL,
-      subject: "Welcome to your Contactbook!",
-      html: `To confirm your email please click on the <a href="http://${process.env.BASE_URL}/api/users/verify/${verificationToken}">link</a>`,
-      text: `To confirm your email please open the link http://${process.env.BASE_URL}/api/users/verify/${verificationToken}`,
       verificationToken,
     });
 
@@ -57,7 +53,6 @@ async function register(req, res, next) {
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-
     const emailToLowerCase = email.trim().toLowerCase();
 
     const user = await User.findOne({ email: emailToLowerCase });
@@ -84,7 +79,10 @@ async function login(req, res, next) {
 
     await User.findByIdAndUpdate(user._id, { token });
 
-    res.send({ token, user: { email, subscription: user.subscription } });
+    res.send({
+      token,
+      user: { email: emailToLowerCase, subscription: user.subscription },
+    });
   } catch (error) {
     next(error);
   }
@@ -104,4 +102,50 @@ async function current(req, res, next) {
   res.json({ email, subscription });
 }
 
-export default { register, login, logout, current };
+async function verify(req, res, next) {
+  const { verificationToken } = req.params;
+
+  try {
+    const user = await User.findOne({ verificationToken });
+
+    if (!user) {
+      throw HttpError(404, "User not found");
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+      verify: true,
+      verificationToken: null,
+    });
+
+    res.status(200).send({ message: "Email confirm successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function requestVerify(req, res, next) {
+  try {
+    const { email } = req.body;
+    const emailToLowerCase = email.trim().toLowerCase();
+    const user = await User.findOne({ email: emailToLowerCase });
+
+    if (!user) {
+      throw HttpError(404, "User not found");
+    }
+
+    if (user.verify) {
+      throw HttpError(400, "Verification has already been completed");
+    }
+
+    await sendVerificationMail({
+      to: emailToLowerCase,
+      verificationToken: user.verificationToken,
+    });
+
+    res.send({ message: "Verification mail sent. Check your mail" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export default { register, login, logout, current, verify, requestVerify };
